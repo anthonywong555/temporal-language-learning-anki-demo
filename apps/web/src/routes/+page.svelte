@@ -3,10 +3,13 @@
   import { Input } from '$lib/components/ui/input';
   import * as Card from "$lib/components/ui/card";
   import * as Select from "$lib/components/ui/select";
+  import { Badge } from "$lib/components/ui/badge";
   import { Label } from "$lib/components/ui/label";
-
+  import { ScrollArea } from "$lib/components/ui/scroll-area";
   import { toast } from "svelte-sonner";
- 
+  import Check from 'lucide-svelte/icons/check';
+  
+  /*
   const frameworks = [
     {
       value: "sveltekit",
@@ -46,9 +49,174 @@
     const workflowResponse:PostWorkflowResponse = await response.json();
     greet = workflowResponse.greet;
   }
+  */
+  const frameworks = [
+    {
+      value: "sveltekit",
+      label: "SvelteKit"
+    },
+    {
+      value: "next",
+      label: "Next.js"
+    },
+    {
+      value: "astro",
+      label: "Astro"
+    },
+    {
+      value: "nuxt",
+      label: "Nuxt.js"
+    }
+  ];
+
+  const kamenRiders = ['Kamen Rider', 'V3', 'X', 'Amazon', 'Stronger'];
+  const googleTranslateSupportedLanguages = [
+    "Afrikaans", "Albanian", "Amharic", "Arabic", "Armenian", "Assamese", 
+    "Aymara", "Azerbaijani", "Bambara", "Basque", "Belarusian", "Bengali", 
+    "Bhojpuri", "Bosnian", "Bulgarian", "Catalan", "Cebuano", "Chinese (Simplified)", 
+    "Chinese (Traditional)", "Corsican", "Croatian", "Czech", "Danish", "Dhivehi", 
+    "Dogri", "Dutch", "English", "Esperanto", "Estonian", "Ewe", "Filipino", "Finnish", 
+    "French", "Frisian", "Galician", "Georgian", "German", "Greek", "Guarani", 
+    "Gujarati", "Haitian Creole", "Hausa", "Hawaiian", "Hebrew", "Hindi", "Hmong", 
+    "Hungarian", "Icelandic", "Igbo", "Ilocano", "Indonesian", "Irish", "Italian", 
+    "Japanese", "Javanese", "Kannada", "Kazakh", "Khmer", "Kinyarwanda", "Konkani", 
+    "Korean", "Krio", "Kurdish (Kurmanji)", "Kurdish (Sorani)", "Kyrgyz", "Lao", 
+    "Latin", "Latvian", "Lingala", "Lithuanian", "Luganda", "Luxembourgish", "Macedonian", 
+    "Maithili", "Malagasy", "Malay", "Malayalam", "Maltese", "Maori", "Marathi", 
+    "Meiteilon (Manipuri)", "Mizo", "Mongolian", "Myanmar (Burmese)", "Nepali", 
+    "Norwegian", "Nyanja (Chichewa)", "Odia (Oriya)", "Oromo", "Pashto", "Persian", 
+    "Polish", "Portuguese", "Punjabi", "Quechua", "Romanian", "Russian", "Samoan", 
+    "Sanskrit", "Scots Gaelic", "Sepedi", "Serbian", "Sesotho", "Shona", "Sindhi", 
+    "Sinhala", "Slovak", "Slovenian", "Somali", "Spanish", "Sundanese", "Swahili", 
+    "Swedish", "Tagalog (Filipino)", "Tajik", "Tamil", "Tatar", "Telugu", "Thai", 
+    "Tigrinya", "Tsonga", "Turkish", "Turkmen", "Twi (Akan)", "Ukrainian", "Urdu", 
+    "Uyghur", "Uzbek", "Vietnamese", "Welsh", "Xhosa", "Yiddish", "Yoruba", "Zulu"
+  ];
+
+  const possibleTranslations = [{
+    'service': 'Google',
+    'model': 'translate',
+    'translation': '我哋'
+  }, {
+    'service': 'Azure',
+    'model': 'translate',
+    'translation': '我哋',
+  }, {
+    'service': 'OpenAI',
+    'model': 'gpt-4o',
+    'translation': '我們',
+  }, {
+    'service': 'Anthropic',
+    'model': 'claude-3-5-sonnet-20241022',
+    'translation': '我們'
+  }]
 </script>
 
-<h1>Web</h1>
+<div class="flex flex-row">
+  <div class="flex flex-col basis-1/3 border-2 border-rose-600 p-3">
+    <div class="items-center">
+      <h1>Past Searches</h1>
+    </div>
+      <div class="grid grid-cols-1 gap-2 max-h-[85vh] overflow-y-auto">
+        {#each googleTranslateSupportedLanguages as language, index}
+          <Card.Root>
+            <Card.Header>
+              <Card.Title>{language}</Card.Title>
+              {#if index % 2 === 0}
+                <Card.Description class="text-green-600">
+                  Completed
+                  <Badge variant="default" class="bg-green-500">Saved</Badge>
+                </Card.Description>
+                {:else if index % 3 === 0}
+                <Card.Description class="text-blue-600">
+                  Running
+                </Card.Description>
+              {/if}
+            </Card.Header>
+          </Card.Root>
+        {/each}
+      </div>
+  </div>
+  <div class="flex flex-col basis-2/3 border-2 border-indigo-500">
+    <div class="flex flex-row justify-center">
+      <h1>Translate</h1>
+      <Select.Root>
+        <Select.Trigger id="language-from">
+          <Select.Value placeholder="Select" />
+        </Select.Trigger>
+        <Select.Content>
+          {#each googleTranslateSupportedLanguages as language}
+            <Select.Item value={language} label={language}
+              >{language}</Select.Item
+            >
+          {/each}
+        </Select.Content>
+      </Select.Root>
+      <h1>to</h1>
+      <Select.Root>
+        <Select.Trigger id="language-to">
+          <Select.Value placeholder="Language" />
+        </Select.Trigger>
+        <Select.Content sideOffset={4}>
+          <Select.Group>
+          <Select.Label>Language</Select.Label>
+          {#each googleTranslateSupportedLanguages as language}
+            <Select.Item value={language} label={language}
+              >{language}</Select.Item
+            >
+          {/each}
+        </Select.Group>
+        </Select.Content>
+      </Select.Root>
+    </div>
+    <Input id="name" placeholder="Word" />
+    <Button>Search</Button>
+    <div class="grid sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-0 max-h-[75vh] overflow-y-auto">
+      {#each googleTranslateSupportedLanguages as language}
+        <div class="p-4">
+          <Card.Root>
+            <Card.Header>
+              <Card.Title>{language}</Card.Title>
+              <Card.Description>{language}</Card.Description>
+            </Card.Header>
+            <Card.Content>
+              {language}
+            </Card.Content>
+            <Card.Footer class="flex justify-between">
+              <Button class="w-full" variant="default"
+              on:click={() =>
+                toast.success(`Word '${language}' has been saved!`, {
+                })}>
+                Save
+              </Button>
+            </Card.Footer>
+          </Card.Root>
+        </div>
+      {/each}
+      <!--
+      {#each possibleTranslations as aTranslation}
+        <div class="p-4">
+          <Card.Root>
+            <Card.Header>
+              <Card.Title>{aTranslation.service}</Card.Title>
+              <Card.Description>{aTranslation.model}</Card.Description>
+            </Card.Header>
+            <Card.Content>
+              {aTranslation.translation}
+            </Card.Content>
+            <Card.Footer class="flex justify-between">
+              <Button class="w-full" variant="default">
+                Save
+              </Button>
+            </Card.Footer>
+          </Card.Root>
+        </div>
+      {/each}
+      -->
+    </div>
+  </div>
+</div>
+<!--
 <Card.Root class="w-[350px]">
   <Card.Header>
     <Card.Title>Create project</Card.Title>
@@ -100,4 +268,5 @@
   Show Toast
 </Button>
 <p>{greet}</p>
-<p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
+
+-->
