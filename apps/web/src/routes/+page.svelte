@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { MyCounterButton } from '@repo/ui';
+	import { Button } from '$lib/components/ui/button';
   import type { PostWorkflowRequest, PostWorkflowResponse } from '@boilerplate/common';
 
   let name = '';
@@ -24,8 +24,7 @@
 </script>
 
 <h1>Web</h1>
-<MyCounterButton />
 <input bind:value={name} placeholder="Enter your name" />
-<button on:click={handleFormSubmit}>Submit</button>
+<Button on:click={handleFormSubmit}>Submit</Button>
 <p>{greet}</p>
 <p>Visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to read the documentation</p>
