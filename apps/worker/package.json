@@ -1,0 +1,36 @@
+{
+  "name": "@boilerplate/worker",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "nodemon src/worker.ts",
+    "build": "tsc --build && npm run build:workflow",
+    "build.watch": "tsc --build --watch",
+    "build:workflow": "ts-node scripts/build-workflow-bundle.ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "start": "node .lib/worker.js",
+    "preview": "node --env-file .env.production.local .lib/worker.js"
+  },
+  "nodemonConfig": {
+    "execMap": {
+      "ts": "ts-node"
+    },
+    "ext": "ts",
+    "watch": [
+      "src"
+    ]
+  },
+  "dependencies": {
+    "@temporalio/worker": "^1.11.5",
+    "@temporalio/workflow": "^1.11.5"
+  },
+  "devDependencies": {
+    "@tsconfig/node18": "^18.2.4",
+    "@types/node": "^22.9.1",
+    "nodemon": "^3.1.7",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
+  }
+}

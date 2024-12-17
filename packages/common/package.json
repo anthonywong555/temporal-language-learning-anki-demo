@@ -1,0 +1,20 @@
+{
+  "name": "@boilerplate/common",
+  "version": "0.0.1",
+  "license": "MIT",
+  "main": ".lib/index.js",
+  "types": "./index.ts",
+  "scripts": {
+    "build": "tsc --build",
+    "build.watch": "tsc --build --watch",
+    "lint": "TIMING=1 eslint \"**/*.ts*\""
+  },
+  "dependencies": {
+    "@temporalio/client": "^1.11.5"
+  },
+  "devDependencies": {
+    "@boilerplate/tsconfig": "*",
+    "eslint": "^8.57.1",
+    "typescript": "^5.6.3"
+  }
+}
