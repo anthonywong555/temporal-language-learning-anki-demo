@@ -8,6 +8,12 @@
   import { ScrollArea } from "$lib/components/ui/scroll-area";
   import { toast } from "svelte-sonner";
   import Check from 'lucide-svelte/icons/check';
+  import * as Tooltip from "$lib/components/ui/tooltip";
+  import ChevronsUpDown from "lucide-svelte/icons/chevrons-up-down";
+  import * as Command from "$lib/components/ui/command";
+  import * as Popover from "$lib/components/ui/popover";
+  import { cn } from "$lib/utils.js";
+  import { tick } from "svelte";
   
   /*
   const frameworks = [
@@ -53,21 +59,56 @@
   const frameworks = [
     {
       value: "sveltekit",
-      label: "SvelteKit"
+      label: "SvelteKit",
     },
     {
-      value: "next",
-      label: "Next.js"
+      value: "next.js",
+      label: "Next.js",
+    },
+    {
+      value: "nuxt.js",
+      label: "Nuxt.js",
+    },
+    {
+      value: "remix",
+      label: "Remix",
     },
     {
       value: "astro",
-      label: "Astro"
+      label: "Astro",
     },
-    {
-      value: "nuxt",
-      label: "Nuxt.js"
-    }
   ];
+ 
+  let open = false;
+  let value = "";
+ 
+  $: selectedValue =
+    googleTranslateSupportedLanguages.find((f) => f === value) ??
+    "To Language";
+ 
+  // We want to refocus the trigger button when the user selects
+  // an item from the list so users can continue navigating the
+  // rest of the form with the keyboard.
+  function closeAndFocusTrigger(triggerId: string) {
+    open = false;
+    tick().then(() => {
+      document.getElementById(triggerId)?.focus();
+    });
+  }
+
+  const languages = [
+    { label: "English", value: "en" },
+    { label: "French", value: "fr" },
+    { label: "German", value: "de" },
+    { label: "Spanish", value: "es" },
+    { label: "Portuguese", value: "pt" },
+    { label: "Russian", value: "ru" },
+    { label: "Japanese", value: "ja" },
+    { label: "Korean", value: "ko" },
+    { label: "Chinese", value: "zh" }
+  ] as const;
+ 
+  type Language = (typeof languages)[number]["value"];
 
   const kamenRiders = ['Kamen Rider', 'V3', 'X', 'Amazon', 'Stronger'];
   const googleTranslateSupportedLanguages = [
@@ -138,36 +179,47 @@
       </div>
   </div>
   <div class="flex flex-col basis-2/3 border-2 border-indigo-500">
-    <div class="flex flex-row justify-center">
+    <div class="flex flex-row">
       <h1>Translate</h1>
-      <Select.Root>
-        <Select.Trigger id="language-from">
-          <Select.Value placeholder="Select" />
-        </Select.Trigger>
-        <Select.Content>
-          {#each googleTranslateSupportedLanguages as language}
-            <Select.Item value={language} label={language}
-              >{language}</Select.Item
-            >
-          {/each}
-        </Select.Content>
-      </Select.Root>
-      <h1>to</h1>
-      <Select.Root>
-        <Select.Trigger id="language-to">
-          <Select.Value placeholder="Language" />
-        </Select.Trigger>
-        <Select.Content sideOffset={4}>
-          <Select.Group>
-          <Select.Label>Language</Select.Label>
-          {#each googleTranslateSupportedLanguages as language}
-            <Select.Item value={language} label={language}
-              >{language}</Select.Item
-            >
-          {/each}
-        </Select.Group>
-        </Select.Content>
-      </Select.Root>
+      <Popover.Root bind:open let:ids>
+        <Popover.Trigger asChild let:builder>
+          <Button
+            builders={[builder]}
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            class="w-[200px] justify-between"
+          >
+            {selectedValue}
+            <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </Popover.Trigger>
+        <Popover.Content class="w-[200px] max-h-[200px] overflow-y-auto overflow-y-auto p-0">
+          <Command.Root>
+            <Command.Input placeholder="Language" />
+            <Command.Empty>No Language Found.</Command.Empty>
+            <Command.Group>
+              {#each googleTranslateSupportedLanguages as language}
+                <Command.Item
+                  value={language}
+                  onSelect={(currentValue) => {
+                    value = currentValue;
+                    closeAndFocusTrigger(ids.trigger);
+                  }}
+                >
+                  <Check
+                    class={cn(
+                      "mr-2 h-4 w-4",
+                      value !== language && "text-transparent"
+                    )}
+                  />
+                  {language}
+                </Command.Item>
+              {/each}
+            </Command.Group>
+          </Command.Root>
+        </Popover.Content>
+      </Popover.Root>
     </div>
     <Input id="name" placeholder="Word" />
     <Button>Search</Button>
@@ -180,7 +232,12 @@
               <Card.Description>{language}</Card.Description>
             </Card.Header>
             <Card.Content>
-              {language}
+              <Tooltip.Root>
+                <Tooltip.Trigger>{language}</Tooltip.Trigger>
+                <Tooltip.Content>
+                  <p>Copy to clipboard</p>
+                </Tooltip.Content>
+              </Tooltip.Root>
             </Card.Content>
             <Card.Footer class="flex justify-between">
               <Button class="w-full" variant="default"
