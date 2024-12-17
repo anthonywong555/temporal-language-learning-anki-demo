@@ -2,7 +2,6 @@ import { NativeConnection, Runtime, Worker, type RuntimeOptions, type WorkerOpti
 import * as activities from '@boilerplate/activities';
 import { getEnv } from '@boilerplate/common';
 import http from 'http';
-//import { namespace, getConnectionOptions, taskQueue, env } from '@boilerplate/common/temporal';
 import { namespace, getConnectionOptions, taskQueue, env } from '@boilerplate/common/.lib/temporal';
 
 export function getWorkflowOptions(): Pick<WorkerOptions, "workflowBundle" | "workflowsPath"> {
