@@ -6,7 +6,7 @@ export const GET = async ({ request }) => {
   // Create a Anki Client
   try {
     const client = await getAnkiClient();
-    await client.deck.deckNames();
+    await client.miscellaneous.version();
     return json({
       'status': 'OK'
     });
