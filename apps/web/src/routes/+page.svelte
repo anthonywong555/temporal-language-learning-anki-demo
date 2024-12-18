@@ -12,8 +12,13 @@
   import ChevronsUpDown from "lucide-svelte/icons/chevrons-up-down";
   import * as Command from "$lib/components/ui/command";
   import * as Popover from "$lib/components/ui/popover";
+  import * as Avatar from "$lib/components/ui/avatar";
+  import StatusIndicator from '$lib/components/ui/status-indicator/status-indicator.svelte';
   import { cn } from "$lib/utils.js";
   import { tick } from "svelte";
+  import Sun from "svelte-radix/Sun.svelte";
+  import Moon from "svelte-radix/Moon.svelte";
+  import { toggleMode } from "mode-watcher";
   
   /*
   const frameworks = [
@@ -152,33 +157,61 @@
     'translation': '我們'
   }]
 </script>
-
 <div class="flex flex-row">
-  <div class="flex flex-col basis-1/3 border-2 border-rose-600 p-3">
+  <div>
+    <span class="align-text-bottom">Temporal Language Learning Anki Demo</span>
+  </div>
+  <div>
+    <Avatar.Root class="rounded-none">
+      <Avatar.Image class="rounded-none" src="https://upload.wikimedia.org/wikipedia/commons/3/3d/Anki-icon.svg" alt="@shadcn" />
+      <Avatar.Fallback>CN</Avatar.Fallback>
+      <StatusIndicator status="online"/>
+    </Avatar.Root>
+  </div>
+  <div>
+    <Avatar.Root class="rounded-none">
+      <Avatar.Image class="rounded-none" src="https://avatars.githubusercontent.com/u/56493103?s=280&v=4" alt="@shadcn" />
+      <Avatar.Fallback>CN</Avatar.Fallback>
+      <StatusIndicator status="online"/>
+    </Avatar.Root>
+  </div>
+  <Button on:click={toggleMode} variant="outline" size="icon">
+    <Sun
+      class="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"
+    />
+    <Moon
+      class="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"
+    />
+    <span class="sr-only">Toggle theme</span>
+  </Button>
+</div>
+<div class="flex flex-row">
+  <div class="flex flex-col basis-1/3 border-2 border-purple-600 p-3 sm:p-0">
     <div class="items-center">
       <h1>Past Searches</h1>
     </div>
-      <div class="grid grid-cols-1 gap-2 max-h-[85vh] overflow-y-auto">
-        {#each googleTranslateSupportedLanguages as language, index}
-          <Card.Root>
-            <Card.Header>
-              <Card.Title>{language}</Card.Title>
-              {#if index % 2 === 0}
-                <Card.Description class="text-green-600">
-                  Completed
-                  <Badge variant="default" class="bg-green-500">Saved</Badge>
-                </Card.Description>
-                {:else if index % 3 === 0}
-                <Card.Description class="text-blue-600">
-                  Running
-                </Card.Description>
-              {/if}
-            </Card.Header>
-          </Card.Root>
-        {/each}
-      </div>
+    <div class="grid grid-cols-1 gap-2 max-h-[85vh] overflow-y-auto">
+      {#each googleTranslateSupportedLanguages as language, index}
+        <Card.Root>
+          <Card.Header>
+            <Card.Title>{language}</Card.Title>
+            {#if index % 2 === 0}
+              <Card.Description class="text-green-600">
+                Completed
+                <Badge variant="default" class="bg-green-500">Saved</Badge>
+              </Card.Description>
+              {:else if index % 3 === 0}
+              <Card.Description class="text-blue-600">
+                Running
+              </Card.Description>
+            {/if}
+          </Card.Header>
+        </Card.Root>
+      {/each}
+    </div>
+    <Button>Sync</Button>
   </div>
-  <div class="flex flex-col basis-2/3 border-2 border-indigo-500">
+  <div class="flex flex-col basis-2/3 border-2 border-black-500">
     <div class="flex flex-row">
       <h1>Translate</h1>
       <Popover.Root bind:open let:ids>
