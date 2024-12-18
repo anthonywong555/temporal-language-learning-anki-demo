@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Navbar from '../components/Navbar.svelte';
 	import { Button } from '$lib/components/ui/button';
   import { Input } from '$lib/components/ui/input';
   import * as Card from "$lib/components/ui/card";
@@ -189,34 +190,8 @@
     'translation': '我們'
   }]
 </script>
-<div class="flex flex-row">
-  <div>
-    <span class="align-text-bottom">Temporal Language Learning Anki Demo</span>
-  </div>
-  <div>
-    <Avatar.Root class="rounded-none">
-      <Avatar.Image class="rounded-none" src="https://upload.wikimedia.org/wikipedia/commons/3/3d/Anki-icon.svg" alt="@shadcn" />
-      <Avatar.Fallback>CN</Avatar.Fallback>
-      <StatusIndicator status="online"/>
-    </Avatar.Root>
-  </div>
-  <div>
-    <Avatar.Root class="rounded-none">
-      <Avatar.Image class="rounded-none" src="https://avatars.githubusercontent.com/u/56493103?s=280&v=4" alt="@shadcn" />
-      <Avatar.Fallback>CN</Avatar.Fallback>
-      <StatusIndicator status="online"/>
-    </Avatar.Root>
-  </div>
-  <Button on:click={toggleMode} variant="outline" size="icon">
-    <Sun
-      class="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"
-    />
-    <Moon
-      class="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"
-    />
-    <span class="sr-only">Toggle theme</span>
-  </Button>
-</div>
+
+<Navbar />
 <div class="flex flex-row">
   <div class="flex flex-col basis-1/3 border-2 border-purple-600 p-3 sm:p-0">
     <div class="items-center">
@@ -287,7 +262,7 @@
       </Popover.Root>
     </div>
     <Input id="name" placeholder="Word" />
-    <Button on:click={async () => await handleButtonClick()}>Search</Button>
+    <Button on:click={() => {handleButtonClick()}}>Search</Button>
     <div class="grid sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-0 max-h-[75vh] overflow-y-auto">
       {#each googleTranslateSupportedLanguages as language}
         <div class="p-4">
