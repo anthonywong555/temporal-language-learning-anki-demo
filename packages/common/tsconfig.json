@@ -4,5 +4,5 @@
     "lib": ["es2021"],
     "outDir": ".lib/"
   },
-  "include": ["*.ts"]
+  "include": ["*.ts", "anki.mts"]
 }

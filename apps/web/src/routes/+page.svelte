@@ -61,6 +61,38 @@
     greet = workflowResponse.greet;
   }
   */
+  async function handleTemporalCheck() {
+    console.log(`handleTemporalCheck`);
+    try {
+      const response = await fetch('/api/temporal', {
+        method: 'GET',
+      });
+      console.log(await response.json());
+    } catch(e) {
+      //console.error(e);
+    }
+  }
+
+  async function handleAnkiHealthCheck() {
+    console.log(`handleAnkiHealthCheck`);
+    try {
+      const response = await fetch('/api/anki', {
+        method: 'GET',
+      });
+      console.log(await response.json());
+    } catch(e) {
+      //console.error(e);
+    }
+  }
+
+  async function handleButtonClick() {
+    try {
+      await Promise.all([handleAnkiHealthCheck(), handleTemporalCheck()])
+    } catch(e) {
+      console.error(e);
+    }
+  }
+
   const frameworks = [
     {
       value: "sveltekit",
@@ -255,7 +287,7 @@
       </Popover.Root>
     </div>
     <Input id="name" placeholder="Word" />
-    <Button>Search</Button>
+    <Button on:click={async () => await handleButtonClick()}>Search</Button>
     <div class="grid sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-0 max-h-[75vh] overflow-y-auto">
       {#each googleTranslateSupportedLanguages as language}
         <div class="p-4">

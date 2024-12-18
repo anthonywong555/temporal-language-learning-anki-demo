@@ -10,7 +10,8 @@
     "lint": "TIMING=1 eslint \"**/*.ts*\""
   },
   "dependencies": {
-    "@temporalio/client": "^1.11.5"
+    "@temporalio/client": "^1.11.5",
+    "yanki-connect": "^2.1.8"
   },
   "devDependencies": {
     "@boilerplate/tsconfig": "*",
