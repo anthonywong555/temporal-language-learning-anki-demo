@@ -1,8 +1,16 @@
 import { defineQuery, proxyActivities, startChild, workflowInfo, setHandler } from '@temporalio/workflow';
 import type { WorkflowRequestTranslation, PromiseResult, TranslationServiceResponse, WorkflowResponseTranslation } from '@boilerplate/common';
 import { createAnthropicActivites, createGoogleActivites, createOpenAIActivites, createAzureActivites } from '@boilerplate/activities';
+import * as toolActivites from '@boilerplate/activities/tools/activities';
 import type Anthropic from '@anthropic-ai/sdk';
 import type { TranslatedTextItemOutput } from '@azure-rest/ai-translation-text';
+
+const { randomDelay } = proxyActivities<typeof toolActivites>({
+  startToCloseTimeout: '1 minute',
+  retry: {
+    maximumAttempts: 3
+  }
+});
 
 const { detectLanguage, translateText, listLanguages } = proxyActivities<ReturnType<typeof createGoogleActivites>>({
   scheduleToCloseTimeout: '1 minute',

@@ -138,7 +138,7 @@ async function run() {
   }, AZURE_ENDPOINT);
   const anAzureActivites = createAzureActivites(anAzureClient);
 
-  const connection = await NativeConnection.connect(getConnectionOptions());
+  const connection = await NativeConnection.connect(await getConnectionOptions());
 
   try {
     const worker = await Worker.create({

@@ -1,5 +1,6 @@
 import { Connection, Client } from '@temporalio/client';
 import { getEnv } from './index';
+import fs from "fs/promises";
 
 export const namespace = getEnv('TEMPORAL_NAMESPACE', 'default');
 export const taskQueue = getEnv('TEMPORAL_TASK_QUEUE', 'turbo-repo');
@@ -10,34 +11,29 @@ interface ConnectionOptions {
   tls?: { clientCertPair: { crt: Buffer; key: Buffer } }
 }
 
-export function getConnectionOptions(): ConnectionOptions {
-  const { TEMPORAL_SERVER = 'localhost:7233', NODE_ENV = 'development' } = process.env;
-  const isDeployed = ['production', 'staging'].includes(NODE_ENV);
+export async function getConnectionOptions(): Promise<ConnectionOptions> {
+  const address = getEnv("TEMPORAL_ADDRESS", "localhost:7233");
 
-  if (isDeployed) {
-    const { TEMPORAL_CLOUD_CERT, TEMPORAL_CLOUD_KEY } = process.env;
+  let tls: ConnectionOptions["tls"] = undefined;
+  if (process.env.TEMPORAL_CLIENT_CERT_PATH) {
+    const crt = await fs.readFile(getEnv("TEMPORAL_CLIENT_CERT_PATH"));
+    const key = await fs.readFile(getEnv("TEMPORAL_CLIENT_KEY_PATH"));
 
-    if (TEMPORAL_CLOUD_CERT && TEMPORAL_CLOUD_KEY) {
-      return {
-        address: TEMPORAL_SERVER,
-        tls: {
-          clientCertPair: {
-            crt: Buffer.from(TEMPORAL_CLOUD_CERT),
-            key: Buffer.from(TEMPORAL_CLOUD_KEY),
-          },
-        },
-      }
-    }
+    tls = { clientCertPair: { crt, key } };
+    console.info('🤖: Connecting to Temporal Cloud ⛅');
+  } else {
+    console.info('🤖: Connecting to Local Temporal'); 
   }
 
   return {
-    address: TEMPORAL_SERVER,
-  }
-};
+    address,
+    tls,
+  };
+}
 
 export async function connectToTemporal() {
   return new Client({
-    connection: await Connection.connect(getConnectionOptions()).catch((err) => {
+    connection: await Connection.connect(await getConnectionOptions()).catch((err) => {
       console.error('Error connecting to Temporal Server: ', err)
       return undefined
     }),

@@ -15,7 +15,7 @@
     PostResponseTranslation,
     PostRequestTranslation, 
 	TranslationResponse} from '@boilerplate/common';
-  import Temporal from '../assets/Temporal_Logo_Animation.gif';
+  import LoadingWheel from '../assets/Temporal_Logo_Animation.gif';
   import Azure from '../assets/Azure.svelte';
   import Google from '../assets/Google.svelte';
   import OpenAI from '../assets/OpenAI.svelte';
@@ -89,7 +89,7 @@
           }
         });
 
-        const interval = setInterval(() => fetchTranslations(aTranslationRequest), 1000); // // Poll every 5 seconds
+        const interval = setInterval(() => fetchTranslations(aTranslationRequest), 5000); // // Poll every 5 seconds
         translationRequests = [...translationRequests, {...aTranslationRequest}];
         requestToInterval.set(aTranslationRequest.workflowId, interval);
 
@@ -102,6 +102,7 @@
   }
 
   async function fetchTranslations(aTranslationRequest: PostRequestTranslation) {
+    console.log(`fetchTranslation`, aTranslationRequest);
     try {
       const fetchRequest = await fetch(`/api/translation?workflowId=${aTranslationRequest.workflowId}`, {
         method: 'GET',
@@ -109,8 +110,9 @@
           'content-type': 'application/json'
         },
       });
-      const response = (await fetchRequest.json());
+      const response:TranslationResponse = (await fetchRequest.json());
       console.log(`response`, response);
+      console.log(`Workflow Status ${response.status}`);
 
       if(response.status === 'COMPLETED' || response.status === 'FAILED') {
         // The Workflow is completed!
@@ -233,7 +235,7 @@
     {#if currentTranslationResponse.results.length > 0}
         <h1>Search Results for {currentQuery}</h1>
       {:else if currentQuery != ''}
-      <img src={Temporal} alt='Loading Wheel' />
+      <img class="loading-gif" src={LoadingWheel} alt='Loading Wheel' width="140px" height="140px" />
     {/if}
     <div class="grid sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-0 max-h-[75vh] overflow-y-auto">
       {#each currentTranslationResponse.results as aService}
@@ -279,6 +281,12 @@
 </div>
 
 <style>
+  .loading-gif {
+    animation: spin 2s linear infinite;
+    max-width: 50%;
+    margin: auto;
+  }
+
 
   :global(svg) {
 		max-width: 50px;

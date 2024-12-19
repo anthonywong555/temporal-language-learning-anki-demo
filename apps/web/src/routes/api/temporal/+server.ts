@@ -5,7 +5,7 @@ import { json } from '@sveltejs/kit';
 
 export const GET = async ({ request }) => {
   try {
-    const conn = await Connection.connect(getConnectionOptions());
+    const conn = await Connection.connect(await getConnectionOptions());
     const response = await conn.healthService.check({});
     await conn.close();
     return json(response);

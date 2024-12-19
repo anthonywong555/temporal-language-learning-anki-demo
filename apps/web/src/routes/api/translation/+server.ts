@@ -12,7 +12,7 @@ export const POST = (async ({ request }) => {
   const { workflowId, ...aWorkflowRequest } = workflowRequest;
 
   // Create a Temporal Workflow
-  const greet = await client.workflow.execute(translation, {
+  const greet = await client.workflow.start(translation, {
     taskQueue,
     args: [ aWorkflowRequest ],
     workflowId
