@@ -15,7 +15,12 @@
     PostResponseTranslation,
     PostRequestTranslation, 
 	TranslationResponse} from '@boilerplate/common';
- 
+  import Temporal from '../assets/Temporal_Logo_Animation.gif';
+  import Azure from '../assets/Azure.svelte';
+  import Google from '../assets/Google.svelte';
+  import OpenAI from '../assets/OpenAI.svelte';
+	import Anthropic from '../assets/Anthropic.png';
+
   const googleTranslateSupportedLanguages = [
     "Afrikaans", "Albanian", "Amharic", "Arabic", "Armenian", "Assamese", 
     "Aymara", "Azerbaijani", "Bambara", "Basque", "Belarusian", "Bengali", 
@@ -44,22 +49,37 @@
   let toLanguage = '';
   let fromLanguage = 'English';
   let query = '';
+  let currentQuery = '';
+  let currentWorkflowId = '';
   let requestToInterval = new Map<string, NodeJS.Timer>(); // Keep track of all NodeJS.Timer
   let translationRequests:Array<PostRequestTranslation> = []; // All the translation requests goes here
-  let currentTranslationRequests:TranslationResponse = {
+  let currentTranslationResponse:TranslationResponse = {
     results: [],
     status: ''
   };
 
   async function onSearch() {
     if(toLanguage && fromLanguage && query) {
+      currentQuery = `${query}`;
+      query = '';
+
       try {
         const aTranslationRequest:PostRequestTranslation = {
           fromLanguage,
           toLanguage,
-          query,
+          query: currentQuery,
           workflowId: uuidv4()
         };
+
+        currentTranslationResponse = {status: 'Schedule', results: []}
+
+        currentWorkflowId = aTranslationRequest.workflowId;
+        translationHistories.push({
+          request: aTranslationRequest,
+          response: currentTranslationResponse
+        });
+
+        translationHistories = [...translationHistories];
 
         await fetch('/api/translation', {
           method: 'POST',
@@ -69,10 +89,10 @@
           }
         });
 
-        const interval = setInterval(() => fetchTranslations(aTranslationRequest), 5000); // // Poll every 5 seconds
-        currentTranslationRequests = {status: '', results: []}
+        const interval = setInterval(() => fetchTranslations(aTranslationRequest), 1000); // // Poll every 5 seconds
         translationRequests = [...translationRequests, {...aTranslationRequest}];
         requestToInterval.set(aTranslationRequest.workflowId, interval);
+
       } catch(e) {
         // TODO: Show a Toast Message
         console.error(`An error has occurred`, e);
@@ -99,8 +119,41 @@
       }
 
       if(response.status === 'RUNNING' || response.status === 'COMPLETED') {
-        currentTranslationRequests = response;
+        currentTranslationResponse = response;
         
+        const index = translationHistories.findIndex(aHistory => aHistory.request.workflowId == aTranslationRequest.workflowId);
+        
+        console.log(`index`, index);
+        let newResponse:TranslationResponse = { status: response.status, results: []};
+        if(index !== -1) {
+          newResponse.results = translationHistories[index].response.results;
+
+          for(const aService of response.results) {
+            console.log(`aService.service`, aService.service);
+            
+            if(!newResponse.results.some((anElement) => anElement.service == aService.service)) {
+              newResponse.results.push(aService);
+            }
+          }
+
+          console.log(`newResponse`, newResponse);
+
+          translationHistories[index] = {
+            request: aTranslationRequest,
+            response: newResponse,
+            isSave: translationHistories[index].isSave
+          };
+
+          console.log(`changetranslationHistories[index]`, translationHistories[index]);
+
+          translationHistories = [...translationHistories];
+          translationHistories = translationHistories;
+          console.log('translationHistories', translationHistories);
+        }
+
+        if(query === aTranslationRequest.query) {
+          currentTranslationResponse = newResponse;
+        }
       }
     } catch(e) {
       console.error(e);
@@ -112,11 +165,20 @@
     clearInterval(requestToInterval.get(aTranslationRequest.workflowId));
     requestToInterval.delete(aTranslationRequest.workflowId);
 	}
+
+  async function switchHistory(workflowId: string) {
+    const aTranslationHistory = translationHistories.find(aHistory => aHistory.request.workflowId == workflowId);
+    if(aTranslationHistory?.response) {
+      currentQuery = aTranslationHistory.request.query;
+      currentWorkflowId = workflowId;
+      currentTranslationResponse = aTranslationHistory.response;
+    }
+  }
 </script>
 
 <Navbar />
 <div class="flex flex-row">
-  <div class="flex flex-col basis-1/3 border-2 border-purple-600 p-3 sm:p-0">
+  <div class="flex flex-col basis-1/3 border-2 border-black p-3 sm:p-0">
     <div class="items-center">
       <h1>Past Searches</h1>
     </div>
@@ -124,7 +186,9 @@
       {#each translationHistories as aTranslationHistory, index}
         <Card.Root>
           <Card.Header>
-            <Card.Title>{aTranslationHistory.request.query}</Card.Title>
+            <Card.Title>
+              {aTranslationHistory.request.query}
+            </Card.Title>
             {#if aTranslationHistory.response.status === 'COMPLETED'}
               <Card.Description class="text-green-600">
                 Completed
@@ -139,12 +203,15 @@
               </Card.Description>
             {/if}
           </Card.Header>
+          <Card.Footer class="flex justify between">
+            <Button on:click={() => switchHistory(aTranslationHistory.request.workflowId)}>Switch</Button>
+          </Card.Footer>
         </Card.Root>
       {/each}
     </div>
     <Button>Sync</Button>
   </div>
-  <div class="flex flex-col basis-2/3 border-2 border-black-500">
+  <div class="flex flex-col basis-2/3 border-2 border-black">
     <div class="flex flex-row">
       <h1>Translate</h1>
       <SearchableSelect 
@@ -163,13 +230,28 @@
     </div>
     <Input id="name" placeholder="Word" bind:value={query}/>
     <Button on:click={() => {onSearch()}}>Search</Button>
+    {#if currentTranslationResponse.results.length > 0}
+        <h1>Search Results for {currentQuery}</h1>
+      {:else if currentQuery != ''}
+      <img src={Temporal} alt='Loading Wheel' />
+    {/if}
     <div class="grid sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-0 max-h-[75vh] overflow-y-auto">
-      {#each currentTranslationRequests.results as aService}
+      {#each currentTranslationResponse.results as aService}
         {#each aService.possibleTranslations as aTranslation}
           <div class="p-4">
             <Card.Root>
               <Card.Header>
-                <Card.Title>{aService.service}</Card.Title>
+                <Card.Title>
+                  {#if aService.service === 'OpenAI'}
+                  <OpenAI />
+                  {:else if aService.service === 'Google'}
+                  <Google />
+                  {:else if aService.service === 'Azure'}
+                  <Azure />
+                  {:else if aService.service === 'Anthropic'}
+                  <img src={Anthropic} alt="Anthropic Logo" class="logos" />
+                {/if}
+                </Card.Title>
                 <Card.Description>{aService.model}</Card.Description>
               </Card.Header>
               <Card.Content>
@@ -195,3 +277,18 @@
     </div>
   </div>
 </div>
+
+<style>
+
+  :global(svg) {
+		max-width: 50px;
+    max-height: 50px;
+		display: block
+	}
+
+  .logos {
+    max-width: 50px;
+    max-height: 50px;
+		display: block
+  }
+</style>

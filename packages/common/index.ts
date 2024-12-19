@@ -57,7 +57,7 @@ export interface PostResponseTranslation {
 }
 
 export interface TranslationHistory {
-  request: WorkflowRequestTranslation;
+  request: PostRequestTranslation;
   response: TranslationResponse;
   isSave?: boolean;
 }

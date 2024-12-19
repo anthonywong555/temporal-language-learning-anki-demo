@@ -1,6 +1,6 @@
 import type { PostResponseTranslation, PostRequestTranslation } from '@boilerplate/common/';
 import { taskQueue, connectToTemporal } from '@boilerplate/common/temporal';
-import { translation } from '@boilerplate/workflows';
+import { translation, getTranslations } from '@boilerplate/workflows';
 import { json, type RequestHandler } from '@sveltejs/kit';
 
 export const POST = (async ({ request }) => {
@@ -38,7 +38,7 @@ export const GET = (async ({ url }) => {
 
   const handle = client.workflow.getHandle(workflowId);
   const describe = await handle.describe();
-  const results = await handle.query('getTranslations');
+  const results = await handle.query(getTranslations);
 
   await client.connection.close();
 
