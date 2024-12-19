@@ -1,5 +1,5 @@
 import { defineQuery, proxyActivities, startChild, workflowInfo, setHandler } from '@temporalio/workflow';
-import type { WorkflowRequestTranslation, PromiseResult, TranslationServiceResponse } from '@boilerplate/common';
+import type { WorkflowRequestTranslation, PromiseResult, TranslationServiceResponse, WorkflowResponseTranslation } from '@boilerplate/common';
 import { createAnthropicActivites, createGoogleActivites, createOpenAIActivites, createAzureActivites } from '@boilerplate/activities';
 import type Anthropic from '@anthropic-ai/sdk';
 import type { TranslatedTextItemOutput } from '@azure-rest/ai-translation-text';
@@ -34,7 +34,7 @@ const { openAICreateMessage } = proxyActivities<ReturnType<typeof createOpenAIAc
 
 export const getTranslations = defineQuery<Array<TranslationServiceResponse>, []>('getTranslations');
 
-export async function translation(aRequest: WorkflowRequestTranslation): Promise<any> {
+export async function translation(aRequest: WorkflowRequestTranslation): Promise<Array<WorkflowResponseTranslation>> {
   /**
    * Optional. If you want to use Google Translate Detect API
    */

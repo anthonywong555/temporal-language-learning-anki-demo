@@ -11,6 +11,10 @@ export interface WorkflowRequestTranslation {
   fromLanguage: string;
 }
 
+export interface WorkflowResponseTranslation extends TranslationServiceResponse {
+
+}
+
 export interface TranslationServiceResponse {
   service: string; // name of the service that used to translate
   model?: string; // name of the ai model you used.
@@ -42,6 +46,25 @@ export interface PostWorkflowRequest {
 
 export interface PostWorkflowResponse {
   greet: string;
+}
+
+export interface PostRequestTranslation extends WorkflowRequestTranslation {
+  workflowId: string;
+}
+
+export interface PostResponseTranslation {
+  workflowId: string;
+}
+
+export interface TranslationHistory {
+  request: WorkflowRequestTranslation;
+  response: TranslationResponse;
+  isSave?: boolean;
+}
+
+export interface TranslationResponse {
+  status: string;
+  results: TranslationServiceResponse[];
 }
 
 /**
