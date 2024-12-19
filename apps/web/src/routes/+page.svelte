@@ -42,7 +42,7 @@
   let translationHistories:Array<TranslationHistory> = [];
 
   let toLanguage = '';
-  let fromLanguage = '';
+  let fromLanguage = 'English';
   let query = '';
   let requestToInterval = new Map<string, NodeJS.Timer>(); // Keep track of all NodeJS.Timer
   let translationRequests:Array<PostRequestTranslation> = []; // All the translation requests goes here
