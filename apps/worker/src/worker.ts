@@ -4,6 +4,21 @@ import { getEnv } from '@boilerplate/common';
 import http from 'http';
 import { namespace, getConnectionOptions, taskQueue, env } from '@boilerplate/common/.lib/temporal';
 
+import { createGoogleActivites, createAnthropicActivites, createOpenAIActivites, createAzureActivites } from "@boilerplate/activities";
+
+// Google
+import { GoogleClient } from "@boilerplate/activities/translation/google/client";
+
+// Anthropic
+import { AnthropicClient } from "@boilerplate/activities/ai/anthropic/client";
+
+// OpenAI
+import { OpenAIClient } from '@boilerplate/activities/ai/openai/client';
+
+// Azure
+import { AzureClient } from "@boilerplate/activities/translation/azure/client";
+
+
 export function getWorkflowOptions(): Pick<WorkerOptions, "workflowBundle" | "workflowsPath"> {
   const workflowBundlePath = getEnv('WORKFLOW_BUNDLE_PATH', '');
   
@@ -96,11 +111,38 @@ async function run() {
     Runtime.install(telemetryOptions);
   }
 
+  // Import Anthropic
+  const ANTHROPIC_API_KEY = getEnv('ANTHROPIC_API_KEY');
+  const anAnthropicClient = new AnthropicClient(ANTHROPIC_API_KEY);
+  const anAnthropicActivites = createAnthropicActivites(anAnthropicClient);
+
+  // Import OpenAI
+  const OPENAI_API_KEY = getEnv('OPENAI_API_KEY');
+  const anOpenAIClient = new OpenAIClient(OPENAI_API_KEY);
+  const anOpenActivites = createOpenAIActivites(anOpenAIClient);
+
+  // Google
+  const GOOGLE_CLOUD_API_KEY = getEnv('GOOGLE_CLOUD_API_KEY');
+  const aGoogleClient = new GoogleClient({
+    key: GOOGLE_CLOUD_API_KEY
+  })
+  const aGoogleActivites = createGoogleActivites(aGoogleClient);
+
+  // Azure
+  const AZURE_API_KEY = getEnv('AZURE_API_KEY');
+  const AZURE_REGION = getEnv('AZURE_REGION');
+  const AZURE_ENDPOINT = getEnv('AZURE_ENDPOINT');
+  const anAzureClient = new AzureClient({
+    key: AZURE_API_KEY,
+    region: AZURE_REGION
+  }, AZURE_ENDPOINT);
+  const anAzureActivites = createAzureActivites(anAzureClient);
+
   const connection = await NativeConnection.connect(getConnectionOptions());
 
   try {
     const worker = await Worker.create({
-      activities,
+      activities: {...activities, ...aGoogleActivites, ...anAzureActivites, ...anAnthropicActivites, ...anOpenActivites},
       connection,
       namespace,
       taskQueue,

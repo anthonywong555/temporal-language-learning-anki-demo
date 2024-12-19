@@ -5,6 +5,27 @@ export interface WorkflowRequestExample {
   name: string;
 }
 
+export interface WorkflowRequestTranslation {
+  query: string; // User's Query
+  toLanguage: string;
+  fromLanguage: string;
+}
+
+export interface TranslationServiceResponse {
+  service: string; // name of the service that used to translate
+  model?: string; // name of the ai model you used.
+  possibleTranslations: Array<string>;
+  errorMessage?: string;
+}
+
+// Define the structure of a resolved or rejected result
+export interface PromiseResult {
+  status: 'resolved' | 'rejected';
+  value?: TranslationServiceResponse; // For resolved promises
+  error?: string; // For rejected promises
+  index: number;  // The index of the promise in the original array
+};  
+
 /**
  * Activites
  */

@@ -13,13 +13,8 @@
   import ChevronsUpDown from "lucide-svelte/icons/chevrons-up-down";
   import * as Command from "$lib/components/ui/command";
   import * as Popover from "$lib/components/ui/popover";
-  import * as Avatar from "$lib/components/ui/avatar";
-  import StatusIndicator from '$lib/components/ui/status-indicator/status-indicator.svelte';
   import { cn } from "$lib/utils.js";
   import { tick } from "svelte";
-  import Sun from "svelte-radix/Sun.svelte";
-  import Moon from "svelte-radix/Moon.svelte";
-  import { toggleMode } from "mode-watcher";
   
   /*
   const frameworks = [

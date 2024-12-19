@@ -9,6 +9,15 @@
     "lint": {},
     "dev": {
       "dependsOn": ["build"],
+      "env": [
+        "GOOGLE_CLOUD_API_KEY", 
+        "ANTHROPIC_API_KEY", 
+        "OPENAI_API_KEY", 
+        "OPENAI_ORGANIZATION",
+        "AZURE_API_KEY",
+        "AZURE_REGION",
+        "AZURE_ENDPOINT"
+      ],
       "cache": false,
       "persistent": true
     },

@@ -11,7 +11,11 @@
   },
   "dependencies": {
     "@boilerplate/common": "*",
-    "@temporalio/activity": "^1.11.5"
+    "@temporalio/activity": "^1.11.5",
+    "@google-cloud/translate": "^8.5.0",
+    "openai": "4.77.0",
+    "@anthropic-ai/sdk": "^0.32.1",
+    "@azure-rest/ai-translation-text": "^1.0.0"
   },
   "devDependencies": {
     "@boilerplate/tsconfig": "*",

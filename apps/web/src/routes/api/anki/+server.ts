@@ -3,7 +3,6 @@ import { getAnkiClient } from '@boilerplate/common/anki.mjs';
 import { json } from '@sveltejs/kit';
 
 export const GET = async ({ request }) => {
-  // Create a Anki Client
   try {
     const client = await getAnkiClient();
     await client.miscellaneous.version();
