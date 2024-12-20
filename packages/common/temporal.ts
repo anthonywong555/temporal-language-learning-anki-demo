@@ -31,6 +31,11 @@ export async function getConnectionOptions(): Promise<ConnectionOptions> {
   };
 }
 
+export function getDeadline() {
+  const durationDeadline = getEnv('TEMPORAL_DEADLINE', '3000'); // 3 seconds
+  return Date.now() + parseInt(durationDeadline);
+}
+
 export async function connectToTemporal() {
   return new Client({
     connection: await Connection.connect(await getConnectionOptions()).catch((err) => {

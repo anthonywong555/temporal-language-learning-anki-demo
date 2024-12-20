@@ -9,12 +9,14 @@
   import SearchableSelect from '$lib/components/ui/searchable-select/searchable-select.svelte';
   import { v4 as uuidv4 } from "uuid";
   import type { 
-    WorkflowRequestTranslation, 
-    TranslationServiceResponse, 
     TranslationHistory, 
-    PostResponseTranslation,
     PostRequestTranslation, 
-	TranslationResponse} from '@boilerplate/common';
+	TranslationResponse,
+	WorkflowResponseTranslation,
+  FormattedTranslationResponse,
+	Translation,
+	TranslationServiceFrontendModel, PostRequestAnkiCard,
+	GetRequestAnkiDeck} from '@boilerplate/common';
   import LoadingWheel from '../assets/Temporal_Logo_Animation.gif';
   import Azure from '../assets/Azure.svelte';
   import Google from '../assets/Google.svelte';
@@ -46,6 +48,10 @@
 
   let translationHistories:Array<TranslationHistory> = [];
 
+  const DECK_NAME = 'Temporal Translation Deck';
+  const WORKFLOW_ID = 'anki-deck';
+  const DEFAULT_QUERYING_INTERVAL_IN_SECONDS = 1000;
+
   let toLanguage = '';
   let fromLanguage = 'English';
   let query = '';
@@ -53,7 +59,7 @@
   let currentWorkflowId = '';
   let requestToInterval = new Map<string, NodeJS.Timer>(); // Keep track of all NodeJS.Timer
   let translationRequests:Array<PostRequestTranslation> = []; // All the translation requests goes here
-  let currentTranslationResponse:TranslationResponse = {
+  let currentTranslationResponse:FormattedTranslationResponse = {
     results: [],
     status: ''
   };
@@ -89,7 +95,7 @@
           }
         });
 
-        const interval = setInterval(() => fetchTranslations(aTranslationRequest), 5000); // // Poll every 5 seconds
+        const interval = setInterval(() => fetchTranslations(aTranslationRequest), DEFAULT_QUERYING_INTERVAL_IN_SECONDS); // // Poll every 5 seconds
         translationRequests = [...translationRequests, {...aTranslationRequest}];
         requestToInterval.set(aTranslationRequest.workflowId, interval);
 
@@ -110,7 +116,7 @@
           'content-type': 'application/json'
         },
       });
-      const response:TranslationResponse = (await fetchRequest.json());
+      const response:WorkflowResponseTranslation = (await fetchRequest.json());
       console.log(`response`, response);
       console.log(`Workflow Status ${response.status}`);
 
@@ -121,7 +127,24 @@
       }
 
       if(response.status === 'RUNNING' || response.status === 'COMPLETED') {
-        currentTranslationResponse = response;
+        // Format the response so it can be useable in the front-end
+        // Transforming TranslationServiceResponse to TranslationServiceFrontEndModel
+        const formattedResults:Array<TranslationServiceFrontendModel> = response.results.map((aTranslationServiceResponse) => {
+          const {service, model, possibleTranslations, errorMessage} = aTranslationServiceResponse;
+          const formattedTranslations = possibleTranslations.map((aTranslatedText) => {
+            return {
+              translatedText: aTranslatedText,
+              isSave: false
+            };
+          });
+
+          return {
+            service,
+            model,
+            errorMessage,
+            possibleTranslations: formattedTranslations
+          };
+        });
         
         const index = translationHistories.findIndex(aHistory => aHistory.request.workflowId == aTranslationRequest.workflowId);
         
@@ -130,7 +153,7 @@
         if(index !== -1) {
           newResponse.results = translationHistories[index].response.results;
 
-          for(const aService of response.results) {
+          for(const aService of formattedResults) {
             console.log(`aService.service`, aService.service);
             
             if(!newResponse.results.some((anElement) => anElement.service == aService.service)) {
@@ -153,7 +176,7 @@
           console.log('translationHistories', translationHistories);
         }
 
-        if(query === aTranslationRequest.query) {
+        if(currentQuery === aTranslationRequest.query) {
           currentTranslationResponse = newResponse;
         }
       }
@@ -176,6 +199,91 @@
       currentTranslationResponse = aTranslationHistory.response;
     }
   }
+
+  async function addTranslationToDeck(aTranslation: Translation, query: string) {
+    try {
+      const request:PostRequestAnkiCard = {
+        queryText: query,
+        translatedText: aTranslation.translatedText,
+        deckName: DECK_NAME,
+        workflowId: WORKFLOW_ID
+      };
+      const response = await fetch('/api/anki/card', {
+        method: 'POST',
+        body: JSON.stringify(request),
+        headers: {
+          'content-type': 'application/json'
+        }
+      });
+      
+      // Toast Message
+      toast.success(`Word '${aTranslation.translatedText}' has been saved!`);
+
+      // Add a Badge
+      const aTranslationHistory = translationHistories.find(aHistory => aHistory.request.workflowId == currentWorkflowId);
+      if(aTranslationHistory) {
+        aTranslation.isSave = true;
+
+        aTranslationHistory.isSave = true;
+        translationHistories = [...translationHistories];
+        translationHistories = translationHistories;
+        console.log(translationHistories);
+
+        currentTranslationResponse = aTranslationHistory.response;
+      }
+    } catch(e) {
+      console.error(e);
+      toast.error(`Failed to add ${aTranslation.translatedText} to the deck.`);
+    }
+  }
+
+  function copyToClipboard(text:string) {
+    navigator.clipboard.writeText(text)
+      .then(() => toast.success(`Word '${text}' has copied to the clipboard.`))
+      .catch(err => toast.error(`Word '${text}' failed to copy to the clipboard.`));
+  }
+
+  async function saveDeck() {
+    try {
+      await fetch('/api/anki/deck', {
+        method: 'POST',
+        body: JSON.stringify({
+          workflowId: WORKFLOW_ID
+        }),
+        headers: {
+          'content-type': 'application/json'
+        }
+      });
+
+      const intervalId = setInterval(async () => {
+        const fetchRequest = await fetch(`/api/anki/deck?workflowId=${WORKFLOW_ID}`, {
+          method: 'GET',
+          headers: {
+            'content-type': 'application/json'
+          }
+        });
+        const response:GetRequestAnkiDeck = (await fetchRequest.json());
+
+        if(response.status === 'COMPLETED' || response.status === 'FAILED' ) {
+          if(response.status === 'COMPLETED') {
+            toast.info(`Deck Saved! See deck ${DECK_NAME}!`, {
+              description: `Number of cards save: ${response.results.notes.added}. 
+              Number of cards unable to save: ${response.results.notes.failed}`,
+              duration: 5000
+            });
+          } else {
+            toast.error(`Failed to save the deck`);
+          }
+          clearInterval(intervalId);
+        }
+      }, DEFAULT_QUERYING_INTERVAL_IN_SECONDS); // 5 seconds
+
+      // Toast Message
+      toast.loading('Saving the deck.');
+    } catch(e) {
+      toast.error(`Failded to save the deck`);
+    }
+  }
 </script>
 
 <Navbar />
@@ -190,20 +298,20 @@
           <Card.Header>
             <Card.Title>
               {aTranslationHistory.request.query}
+              {#if aTranslationHistory.isSave}
+              <Badge class="bg-green-500">Saved</Badge>
+              {/if}
             </Card.Title>
-            {#if aTranslationHistory.response.status === 'COMPLETED'}
-              <Card.Description class="text-green-600">
-                Completed
-              </Card.Description>
-              {:else if aTranslationHistory.response.status === 'RUNNING'}
-              <Card.Description class="text-blue-600">
-                Running
-              </Card.Description>
-              {:else if aTranslationHistory.response.status != 'RUNNING' && aTranslationHistory.response.status != 'COMPLETED'}
-              <Card.Description class="text-yellow-600">
-                {aTranslationHistory.response.status}
-              </Card.Description>
-            {/if}
+            <Card.Description>
+              <span>{aTranslationHistory.request.fromLanguage} to {aTranslationHistory.request.toLanguage}</span>
+              <br />
+              <span class="{
+                aTranslationHistory.response.status === 'COMPLETED' ?
+                'text-green-600' : 
+                aTranslationHistory.response.status === 'RUNNING' ? 
+                'text-blue-600' : 'text-yellow-600'}">{aTranslationHistory.response.status}
+              </span>
+            </Card.Description>
           </Card.Header>
           <Card.Footer class="flex justify between">
             <Button on:click={() => switchHistory(aTranslationHistory.request.workflowId)}>Switch</Button>
@@ -211,7 +319,7 @@
         </Card.Root>
       {/each}
     </div>
-    <Button>Sync</Button>
+    <Button on:click={() => saveDeck()}>Sync to Deck</Button>
   </div>
   <div class="flex flex-col basis-2/3 border-2 border-black">
     <div class="flex flex-row">
@@ -237,11 +345,11 @@
       {:else if currentQuery != ''}
       <img class="loading-gif" src={LoadingWheel} alt='Loading Wheel' width="140px" height="140px" />
     {/if}
-    <div class="grid sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-0 max-h-[75vh] overflow-y-auto">
+    <div class="grid sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-0 min-h-[75vh] max-h-[75vh] overflow-y-auto">
       {#each currentTranslationResponse.results as aService}
         {#each aService.possibleTranslations as aTranslation}
           <div class="p-4">
-            <Card.Root>
+            <Card.Root class="{aTranslation.isSave ? 'border-green-500': ''}">
               <Card.Header>
                 <Card.Title>
                   {#if aService.service === 'OpenAI'}
@@ -258,7 +366,9 @@
               </Card.Header>
               <Card.Content>
                 <Tooltip.Root>
-                  <Tooltip.Trigger>{aTranslation}</Tooltip.Trigger>
+                  <Tooltip.Trigger>
+                    <span on:click={() => {copyToClipboard(aTranslation.translatedText)}}>{aTranslation.translatedText}</span>
+                  </Tooltip.Trigger>
                   <Tooltip.Content>
                     <p>Copy to clipboard</p>
                   </Tooltip.Content>
@@ -266,9 +376,7 @@
               </Card.Content>
               <Card.Footer class="flex justify-between">
                 <Button class="w-full" variant="default"
-                on:click={() =>
-                  toast.success(`Word '${aTranslation}' has been saved!`, {
-                  })}>
+                on:click={() => {addTranslationToDeck(aTranslation, currentQuery)}}>
                   Save
                 </Button>
               </Card.Footer>

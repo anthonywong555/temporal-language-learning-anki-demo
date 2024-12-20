@@ -4,7 +4,10 @@ import { getEnv } from '@boilerplate/common';
 import http from 'http';
 import { namespace, getConnectionOptions, taskQueue, env } from '@boilerplate/common/.lib/temporal';
 
-import { createGoogleActivites, createAnthropicActivites, createOpenAIActivites, createAzureActivites } from "@boilerplate/activities";
+import { createAnkiActivites, createGoogleActivites, createAnthropicActivites, createOpenAIActivites, createAzureActivites } from "@boilerplate/activities";
+
+// Anki
+import { AnkiClient } from '@boilerplate/activities/anki/client';
 
 // Google
 import { GoogleClient } from "@boilerplate/activities/translation/google/client";
@@ -111,6 +114,10 @@ async function run() {
     Runtime.install(telemetryOptions);
   }
 
+  // Import Anki
+  const anAnkiClient = new AnkiClient();
+  const anAnkiActivites = createAnkiActivites(anAnkiClient);
+
   // Import Anthropic
   const ANTHROPIC_API_KEY = getEnv('ANTHROPIC_API_KEY');
   const anAnthropicClient = new AnthropicClient(ANTHROPIC_API_KEY);
@@ -142,7 +149,13 @@ async function run() {
 
   try {
     const worker = await Worker.create({
-      activities: {...activities, ...aGoogleActivites, ...anAzureActivites, ...anAnthropicActivites, ...anOpenActivites},
+      activities: {...activities, 
+        ...anAnkiActivites, 
+        ...aGoogleActivites, 
+        ...anAzureActivites, 
+        ...anAnthropicActivites, 
+        ...anOpenActivites
+      },
       connection,
       namespace,
       taskQueue,

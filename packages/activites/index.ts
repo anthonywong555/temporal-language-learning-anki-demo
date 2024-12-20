@@ -4,3 +4,4 @@ export * from './translation/azure/activites';
 export * from './ai/anthropic/activites';
 export * from './ai/openai/activities';
 export * from './tools/activities';
+export * from './anki/activities';
