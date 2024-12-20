@@ -72,8 +72,8 @@
       <span class="sr-only">Toggle theme</span>
     </Button>
   </div>
-  <div class="">
-    <span class="text-center">Temporal Language Learning Anki Demo</span>
+  <div class="place-content-center">
+    <span class="">Temporal Language Learning Anki Demo</span>
   </div>
   <div class="">
   {#each services as aService }

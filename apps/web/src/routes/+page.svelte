@@ -291,9 +291,9 @@
 
 <Navbar />
 <div class="flex flex-row justify-between">
-  <div class="flex flex-col basis-1/3 border-2 border-black p-3 sm:p-0 min-h-[80vh] max-h-[80vh]">
+  <div class="flex flex-col basis-1/3 border rounded-md p-3 sm:p-0 min-h-[80vh] max-h-[80vh]">
     <div class="">
-      <h1>Past Searches</h1>
+      <h1 class="text-center">Searches History</h1>
     </div>
     <div class="grid grid-cols-1 gap-2 overflow-y-auto">
       {#each translationHistories as aTranslationHistory, index}
@@ -324,8 +324,8 @@
     </div>
     <Button on:click={() => saveDeck()}>Sync to Deck</Button>
   </div>
-  <div class="flex flex-col basis-2/3 border-2 border-black min-h-[80vh] max-h-[80vh]">
-    <div class="flex flex-wrap">
+  <div class="flex flex-col basis-2/3 min-h-[80vh] max-h-[80vh]">
+    <div class="flex flex-wrap justify-evenly">
       <h1>Translate</h1>
       <SearchableSelect 
         items={googleTranslateSupportedLanguages}
