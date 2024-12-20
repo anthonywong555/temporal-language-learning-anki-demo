@@ -81,7 +81,7 @@
         currentTranslationResponse = {status: 'Schedule', results: []}
 
         currentWorkflowId = aTranslationRequest.workflowId;
-        translationHistories.push({
+        translationHistories.unshift({
           request: aTranslationRequest,
           response: currentTranslationResponse
         });
@@ -325,7 +325,7 @@
     <Button on:click={() => saveDeck()}>Sync to Deck</Button>
   </div>
   <div class="flex flex-col basis-2/3 border-2 border-black min-h-[80vh] max-h-[80vh]">
-    <div class="flex flex-row">
+    <div class="flex flex-wrap">
       <h1>Translate</h1>
       <SearchableSelect 
         items={googleTranslateSupportedLanguages}
