@@ -18,9 +18,10 @@
 	TranslationServiceFrontendModel, PostRequestAnkiCard,
 	GetRequestAnkiDeck} from '@boilerplate/common';
   import LoadingWheel from '../assets/Temporal_Logo_Animation.gif';
+  import OpenAIDarkMode from '../assets/OpenAI-DarkMode.png';
   import Azure from '../assets/Azure.svelte';
   import Google from '../assets/Google.svelte';
-  import OpenAI from '../assets/OpenAI.svelte';
+  import OpenAI from '../assets/OpenAI.svg';
 	import Anthropic from '../assets/Anthropic.png';
 
   const googleTranslateSupportedLanguages = [
@@ -50,7 +51,7 @@
 
   const DECK_NAME = 'Temporal Translation Deck';
   const WORKFLOW_ID = 'anki-deck';
-  const DEFAULT_QUERYING_INTERVAL_IN_SECONDS = 1000;
+  const DEFAULT_QUERYING_INTERVAL_IN_SECONDS = 3000;
 
   let toLanguage = '';
   let fromLanguage = 'English';
@@ -120,7 +121,7 @@
       console.log(`response`, response);
       console.log(`Workflow Status ${response.status}`);
 
-      if(response.status === 'COMPLETED' || response.status === 'FAILED') {
+      if(response.status != 'RUNNING') {
         // The Workflow is completed!
         console.log(`About to stop polling`, aTranslationRequest);
         await stopPollingTranslationResults(aTranslationRequest);
@@ -264,11 +265,13 @@
         });
         const response:GetRequestAnkiDeck = (await fetchRequest.json());
 
-        if(response.status === 'COMPLETED' || response.status === 'FAILED' ) {
+        if(response.status === 'RUNNING') {
+          toast.loading('Saving the deck.');
+        } else {
           if(response.status === 'COMPLETED') {
             toast.info(`Deck Saved! See deck ${DECK_NAME}!`, {
-              description: `Number of cards save: ${response.results.notes.added}. 
-              Number of cards unable to save: ${response.results.notes.failed}`,
+              description: `Added: ${response.results.notes.added}. \n
+              Failed: ${response.results.notes.failed}`,
               duration: 5000
             });
           } else {
@@ -287,12 +290,12 @@
 </script>
 
 <Navbar />
-<div class="flex flex-row">
-  <div class="flex flex-col basis-1/3 border-2 border-black p-3 sm:p-0">
-    <div class="items-center">
+<div class="flex flex-row justify-between">
+  <div class="flex flex-col basis-1/3 border-2 border-black p-3 sm:p-0 min-h-[80vh] max-h-[80vh]">
+    <div class="">
       <h1>Past Searches</h1>
     </div>
-    <div class="grid grid-cols-1 gap-2 max-h-[85vh] overflow-y-auto">
+    <div class="grid grid-cols-1 gap-2 overflow-y-auto">
       {#each translationHistories as aTranslationHistory, index}
         <Card.Root>
           <Card.Header>
@@ -321,7 +324,7 @@
     </div>
     <Button on:click={() => saveDeck()}>Sync to Deck</Button>
   </div>
-  <div class="flex flex-col basis-2/3 border-2 border-black">
+  <div class="flex flex-col basis-2/3 border-2 border-black min-h-[80vh] max-h-[80vh]">
     <div class="flex flex-row">
       <h1>Translate</h1>
       <SearchableSelect 
@@ -345,7 +348,7 @@
       {:else if currentQuery != ''}
       <img class="loading-gif" src={LoadingWheel} alt='Loading Wheel' width="140px" height="140px" />
     {/if}
-    <div class="grid sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-0 min-h-[75vh] max-h-[75vh] overflow-y-auto">
+    <div class="grid sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-0 overflow-y-auto">
       {#each currentTranslationResponse.results as aService}
         {#each aService.possibleTranslations as aTranslation}
           <div class="p-4">
@@ -353,7 +356,8 @@
               <Card.Header>
                 <Card.Title>
                   {#if aService.service === 'OpenAI'}
-                  <OpenAI />
+                  <img src={OpenAI} alt="Open AI Logo" class="logos dark:hidden" />
+                  <img src={OpenAIDarkMode} alt="Open AI Logo" class="logos hidden dark:block" />
                   {:else if aService.service === 'Google'}
                   <Google />
                   {:else if aService.service === 'Azure'}
@@ -367,7 +371,9 @@
               <Card.Content>
                 <Tooltip.Root>
                   <Tooltip.Trigger>
-                    <span on:click={() => {copyToClipboard(aTranslation.translatedText)}}>{aTranslation.translatedText}</span>
+                    <Button class="appearance-none bg-transparent border-none p-0 m-0 hover:appearance-none hover:bg-transparent hover:border-none hover:p-0" on:click={() => copyToClipboard(aTranslation.translatedText)}>
+                      <span class="text-black dark:text-white">{aTranslation.translatedText}</span>
+                    </Button>
                   </Tooltip.Trigger>
                   <Tooltip.Content>
                     <p>Copy to clipboard</p>
@@ -405,6 +411,5 @@
   .logos {
     max-width: 50px;
     max-height: 50px;
-		display: block
   }
 </style>

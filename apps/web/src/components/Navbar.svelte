@@ -8,7 +8,8 @@
   import Moon from "svelte-radix/Moon.svelte";
   import { toggleMode } from "mode-watcher";
   import type { Service } from "./types";
-  
+  import { toast } from "svelte-sonner";
+
   let services:Array<Service> = [{
     name: 'Anki',
     iconURL: 'https://upload.wikimedia.org/wikipedia/commons/3/3d/Anki-icon.svg',
@@ -22,6 +23,8 @@
   }];
 
   async function getServiceStatus(aService: Service) {
+    toast.loading(`Getting status of ${aService.name}`);
+
     const index = services.findIndex((aServiceIt) => aServiceIt.name === aService.name);
     let status = 'busy';
 
@@ -36,9 +39,13 @@
 
         if(response.status === 200) {
           status = 'online';
+          toast.info(`${aService.name} is online 🥳`);
+        } else {
+          toast.error(`${aService.name} is offline.`);
         }
       } catch(e) {
         // Silenty Fail
+        toast.error(`${aService.name} is offline.`);
       }
 
       services[index].status = status;
@@ -53,33 +60,37 @@
 
 </script>
 
-<div class="flex flex-row">
-  <div>
-    <span class="align-text-bottom">Temporal Language Learning Anki Demo</span>
+<div class="flex justify-between">
+  <div class="">
+    <Button on:click={toggleMode} variant="outline" size="icon">
+      <Sun
+        class="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"
+      />
+      <Moon
+        class="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"
+      />
+      <span class="sr-only">Toggle theme</span>
+    </Button>
   </div>
+  <div class="">
+    <span class="text-center">Temporal Language Learning Anki Demo</span>
+  </div>
+  <div class="">
   {#each services as aService }
-    <div>
       <Tooltip.Root>
         <Tooltip.Trigger>
-          <Avatar.Root class="rounded-none">
-            <Avatar.Image class="rounded-none" src={aService.iconURL} alt="@shadcn" />
-            <Avatar.Fallback>{aService.name}</Avatar.Fallback>
-            <StatusIndicator status={aService.status}/>
-          </Avatar.Root>
+          <Button class="appearance-none bg-transparent border-none p-0 m-0 hover:appearance-none hover:bg-transparent hover:border-none hover:p-0" on:click={() => getServiceStatus(aService)}>
+            <Avatar.Root class="rounded-none">
+              <Avatar.Image class="rounded-none" src={aService.iconURL} alt="@shadcn" />
+              <Avatar.Fallback>{aService.name}</Avatar.Fallback>
+              <StatusIndicator status={aService.status}/>
+            </Avatar.Root>
+          </Button>
         </Tooltip.Trigger>
         <Tooltip.Content>
           <p>Refresh Status</p>
         </Tooltip.Content>
       </Tooltip.Root>
-    </div>
   {/each}
-  <Button on:click={toggleMode} variant="outline" size="icon">
-    <Sun
-      class="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"
-    />
-    <Moon
-      class="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"
-    />
-    <span class="sr-only">Toggle theme</span>
-  </Button>
+  </div>
 </div>
