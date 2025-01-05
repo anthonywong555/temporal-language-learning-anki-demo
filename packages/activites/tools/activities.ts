@@ -53,3 +53,16 @@ export async function shuffleArray(array: any[]): Promise<any[]> {
   }
   return array;
 }
+
+export async function checkEnvIsValid(env: string[]): Promise<boolean> {
+  let result = true;
+
+  for(const key of env) {
+    if(!process.env[key]) {
+      result = false;
+      break;
+    }
+  }
+
+  return result;
+}

@@ -5,7 +5,7 @@ import * as toolActivites from '@boilerplate/activities/tools/activities';
 import type Anthropic from '@anthropic-ai/sdk';
 import type { TranslatedTextItemOutput } from '@azure-rest/ai-translation-text';
 
-const { randomDelay } = proxyActivities<typeof toolActivites>({
+const { randomDelay, checkEnvIsValid } = proxyActivities<typeof toolActivites>({
   startToCloseTimeout: '1 minute',
   retry: {
     maximumAttempts: 3
@@ -42,7 +42,30 @@ const { openAICreateMessage } = proxyActivities<ReturnType<typeof createOpenAIAc
 
 export const getTranslations = defineQuery<Array<TranslationServiceResponse>, []>('getTranslations');
 
-export async function translation(aRequest: WorkflowRequestTranslation): Promise<Array<WorkflowResponseTranslation>> {
+const translationServices = [
+  {
+    name: 'anthropic',
+    handler: AnthropicAIGetPossibleTranslation,
+    env: ['ANTHROPIC_API_KEY']
+  },
+  {
+    name: 'openAI',
+    handler: OpenAIGetPossibleTranslation,
+    env: ['OPENAI_API_KEY']
+  },
+  {
+    name: 'google',
+    handler: googleTranslate,
+    env: ['GOOGLE_CLOUD_API_KEY']
+  },
+  {
+    name: 'azure',
+    handler: azureTranslate,
+    env: ['AZURE_API_KEY', 'AZURE_REGION', 'AZURE_ENDPOINT']
+  }
+]
+
+export async function translation(aRequest: WorkflowRequestTranslation): Promise<Array<TranslationServiceResponse>> {
   /**
    * Optional. If you want to use Google Translate Detect API
    */
@@ -57,37 +80,32 @@ export async function translation(aRequest: WorkflowRequestTranslation): Promise
 
   // Hit up AI Models to find out what is the possible translation of the give word.
   const results:Array<TranslationServiceResponse> = [];
+  const translationServiceChildWorkflows:Promise<any>[] = [];
 
+  // Define the Query Handler
   setHandler(getTranslations, () => {
     return results;
   });
 
-  const openAIChildWorkflowHandle = await startChild(OpenAIGetPossibleTranslation, {
-    args: [aRequest],
-    workflowId: `openai-${workflowInfo().workflowId}`,
-  });
 
-  const anthropicChildWorkflowHandle = await startChild(AnthropicAIGetPossibleTranslation, {
-    args: [aRequest],
-    workflowId: `anthropic-${workflowInfo().workflowId}`,
-  });
+  for(const aTranslationService of translationServices) {
+    if(await checkEnvIsValid(aTranslationService.env)) {
+      translationServiceChildWorkflows.push(
+        startChild(aTranslationService.handler, {
+          args: [aRequest],
+          workflowId: `${aTranslationService.name}-${workflowInfo().workflowId}`
+        })
+      );
+    }
+  }
 
-  const googleChildWorkflowHandle = await startChild(googleTranslate, {
-    args: [aRequest],
-    workflowId: `google-${workflowInfo().workflowId}`,
-  });
+  if(translationServiceChildWorkflows.length === 0) {
+    return [];
+  }
 
-  const azureChildWorkflowHandle = await startChild(azureTranslate, {
-    args: [aRequest],
-    workflowId: `azure-${workflowInfo().workflowId}`
-  });
+  const handlers = await Promise.all(translationServiceChildWorkflows);
 
-  const runningTranslationServices = [
-    anthropicChildWorkflowHandle.result(), 
-    openAIChildWorkflowHandle.result(),
-    googleChildWorkflowHandle.result(),
-    azureChildWorkflowHandle.result()
-  ];
+  const runningTranslationServices = handlers.map((aService) => aService.result());
 
   while(runningTranslationServices.length > 0) {
     const racePromises = runningTranslationServices.map((promise, index) =>

@@ -1,32 +1,53 @@
-# Turborepo Svelte starter
+# Language Learning Demo
 
-This is an official starter Turborepo.
+This repo demonstrates how you can use Temporal, Translation, and AI services to help you build your vocabulary deck for language learning.
 
-## Using this example
+## Prerequisite
+
+You will need the following before getting started:
+- [Anki Desktop App](https://apps.ankiweb.net/)
+- [Temporal](https://temporal.io/)
+- [Temporal CLI](https://docs.temporal.io/cli)
+
+Optionally you can also add the following translation / ai services:
+- [Anthropic](https://www.anthropic.com/)
+- [OpenAI](https://platform.openai.com/api-keys)
+- [Google Translate](https://cloud.google.com/translate/docs/setup)
+- [Azure Text Translation](https://learn.microsoft.com/en-us/azure/ai-services/translator/?WT.mc_id=Portal-Microsoft_Azure_ProjectOxford)
+
+## Running the Demo locally
+
+```bash
+temporal server start-dev
+```
+
+Set the following environment variables to use the translation / ai services:
+```sh
+export GOOGLE_CLOUD_API_KEY=
+export ANTHROPIC_API_KEY=
+export OPENAI_API_KEY=
+export OPENAI_ORGANIZATION=
+export AZURE_API_KEY=
+export AZURE_REGION=
+export AZURE_ENDPOINT=
+```
+
+### Start worker and UI
 
 Run the following command:
 
-```sh
-npx create-turbo@latest -e with-svelte
+```bash
+npm install
+npm run dev
 ```
 
-## What's inside?
+Navigate to http://localhost:5173 in a web browser to interact with the UX
 
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [svelte-kit](https://kit.svelte.dev/) app
-- `web`: another [svelte-kit](https://kit.svelte.dev/) app
-- `ui`: a stub Svelte component library shared by both `web` and `docs` applications
-- `eslint-config-custom`: `eslint` configurations (includes `eslint-plugin-svelte` and `eslint-config-prettier`)
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+Set the following environment variables to use Temporal Cloud ☁️.
+```sh
+export TEMPORAL_ADDRESS=<namespace>.<accountId>.tmprl.cloud
+export TEMPORAL_NAMESPACE=<namespace>.<accountId>
+export TEMPORAL_CLIENT_CERT_PATH="/path/to/cert.pem"
+export TEMPORAL_CLIENT_KEY_PATH="/path/to/key.key"
+export TEMPORAL_TASK_QUEUE=language
+```

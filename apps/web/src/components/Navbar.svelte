@@ -72,7 +72,7 @@
       <span class="sr-only">Toggle theme</span>
     </Button>
   </div>
-  <div class="place-content-center">
+  <div class="place-content-center hidden sm:block">
     <span class="">Temporal Language Learning Anki Demo</span>
   </div>
   <div class="">

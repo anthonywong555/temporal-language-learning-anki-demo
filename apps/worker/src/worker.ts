@@ -118,32 +118,47 @@ async function run() {
   const anAnkiClient = new AnkiClient();
   const anAnkiActivites = createAnkiActivites(anAnkiClient);
 
+  let translationActivites = {};
+
   // Import Anthropic
-  const ANTHROPIC_API_KEY = getEnv('ANTHROPIC_API_KEY');
-  const anAnthropicClient = new AnthropicClient(ANTHROPIC_API_KEY);
-  const anAnthropicActivites = createAnthropicActivites(anAnthropicClient);
+  const ANTHROPIC_API_KEY = getEnv('ANTHROPIC_API_KEY', '');
+  if(ANTHROPIC_API_KEY) {
+    const anAnthropicClient = new AnthropicClient(ANTHROPIC_API_KEY);
+    const anAnthropicActivites = createAnthropicActivites(anAnthropicClient);
+
+    translationActivites = {...anAnthropicActivites, ...translationActivites};
+  }
 
   // Import OpenAI
-  const OPENAI_API_KEY = getEnv('OPENAI_API_KEY');
-  const anOpenAIClient = new OpenAIClient(OPENAI_API_KEY);
-  const anOpenActivites = createOpenAIActivites(anOpenAIClient);
+  const OPENAI_API_KEY = getEnv('OPENAI_API_KEY', '');
+  if(OPENAI_API_KEY) {
+    const anOpenAIClient = new OpenAIClient(OPENAI_API_KEY);
+    const anOpenActivites = createOpenAIActivites(anOpenAIClient);
+    translationActivites = { ...anOpenActivites, ...translationActivites};
+  }
 
   // Google
-  const GOOGLE_CLOUD_API_KEY = getEnv('GOOGLE_CLOUD_API_KEY');
-  const aGoogleClient = new GoogleClient({
-    key: GOOGLE_CLOUD_API_KEY
-  })
-  const aGoogleActivites = createGoogleActivites(aGoogleClient);
+  const GOOGLE_CLOUD_API_KEY = getEnv('GOOGLE_CLOUD_API_KEY', '');
+  if(GOOGLE_CLOUD_API_KEY) {
+    const aGoogleClient = new GoogleClient({
+      key: GOOGLE_CLOUD_API_KEY
+    })
+    const aGoogleActivites = createGoogleActivites(aGoogleClient);
+    translationActivites = { ...aGoogleActivites, ...translationActivites};
+  }
 
   // Azure
-  const AZURE_API_KEY = getEnv('AZURE_API_KEY');
-  const AZURE_REGION = getEnv('AZURE_REGION');
-  const AZURE_ENDPOINT = getEnv('AZURE_ENDPOINT');
-  const anAzureClient = new AzureClient({
-    key: AZURE_API_KEY,
-    region: AZURE_REGION
-  }, AZURE_ENDPOINT);
-  const anAzureActivites = createAzureActivites(anAzureClient);
+  const AZURE_API_KEY = getEnv('AZURE_API_KEY', '');
+  const AZURE_REGION = getEnv('AZURE_REGION', '');
+  const AZURE_ENDPOINT = getEnv('AZURE_ENDPOINT', '');
+  if(AZURE_API_KEY && AZURE_REGION && AZURE_ENDPOINT) {
+    const anAzureClient = new AzureClient({
+      key: AZURE_API_KEY,
+      region: AZURE_REGION
+    }, AZURE_ENDPOINT);
+    const anAzureActivites = createAzureActivites(anAzureClient);
+    translationActivites = { ...anAzureActivites, ...translationActivites};
+  }
 
   const connection = await NativeConnection.connect(await getConnectionOptions());
 
@@ -151,10 +166,7 @@ async function run() {
     const worker = await Worker.create({
       activities: {...activities, 
         ...anAnkiActivites, 
-        ...aGoogleActivites, 
-        ...anAzureActivites, 
-        ...anAnthropicActivites, 
-        ...anOpenActivites
+        ...translationActivites
       },
       connection,
       namespace,
