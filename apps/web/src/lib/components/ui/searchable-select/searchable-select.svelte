@@ -10,9 +10,11 @@
     export let items: string[] = [];
     export let defaultText: string = "Select an option...";
     export let noAvailableText: string = "No options available.";
-    export let value:string;
+    export let value: string;
 
     let open = false;
+    let searchTerm = "";
+    let customEntry = "";
 
     $: selectedValue =
         items.find((item) => item === value) ?? defaultText;
@@ -22,6 +24,15 @@
         tick().then(() => {
             document.getElementById(triggerId)?.focus();
         });
+    }
+
+    function handleCustomInput() {
+        if (customEntry && !items.includes(customEntry)) {
+            items = [...items, customEntry];
+            value = customEntry;
+            searchTerm = "";
+            closeAndFocusTrigger("custom-trigger");
+        }
     }
 </script>
 
@@ -38,10 +49,28 @@
             <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
     </Popover.Trigger>
-    <Popover.Content class="w-[200px] max-h-[200px] overflow-y-auto overflow-y-auto p-0">
+    <Popover.Content class="w-[200px] max-h-[200px] overflow-y-auto p-0">
         <Command.Root>
-            <Command.Input placeholder="Search options..." />
-            <Command.Empty>{noAvailableText}</Command.Empty>
+            <Command.Input 
+                bind:value={searchTerm}
+                placeholder="Search options..."
+            />
+            <Command.Empty>
+                <div class="p-2">
+                    <p>{noAvailableText}</p>
+                    <input 
+                        type="text" 
+                        bind:value={customEntry} 
+                        placeholder="Enter your own..." 
+                        class="w-full mt-2 p-1 border rounded"
+                        on:keydown={(e) => {
+                            if (e.key === 'Enter') {
+                                handleCustomInput();
+                            }
+                        }}
+                    />
+                </div>
+            </Command.Empty>
             <Command.Group>
                 {#each items as item}
                     <Command.Item
