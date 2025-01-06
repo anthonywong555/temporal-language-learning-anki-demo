@@ -22,7 +22,9 @@
         "AZURE_API_KEY",
         "AZURE_REGION",
         "AZURE_ENDPOINT",
-        "NODE_ENV"
+        "NODE_ENV",
+        "TO_LANGUAGE",
+        "FROM_LANGUAGE"
       ],
       "cache": false,
       "persistent": true

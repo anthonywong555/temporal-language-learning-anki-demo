@@ -32,6 +32,15 @@ export AZURE_REGION=
 export AZURE_ENDPOINT=
 ```
 
+By default the *From Language* is set to English. To override this and to set the To Language, set the following environment variables:
+
+```bash
+export TO_LANGUAGE=
+export FROM_LANGUAGE=
+```
+
+See a list of supported languages in the `apps/web/static/languages.json`
+
 ### Start worker and UI
 
 Run the following command:
