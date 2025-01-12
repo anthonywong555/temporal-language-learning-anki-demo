@@ -327,7 +327,7 @@
     {#if currentTranslationResponse.results.length > 0}
         <h1>Search Results for {currentQuery}</h1>
       {:else if currentQuery != ''}
-      <img class="loading-gif" src={LoadingWheel} alt='Loading Wheel' width="140px" height="140px" />
+      <img class="loading-gif dark:invert" src={LoadingWheel} alt='Loading Wheel' width="140px" height="140px" />
     {/if}
     <div class="grid sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-0 overflow-y-auto">
       {#each currentTranslationResponse.results as aService}
